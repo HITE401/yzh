@@ -1,4 +1,5 @@
 #include"estimator.h"
+#include "pub_topic.h"  //nb！
 
 Estimator::Estimator() 
 {
@@ -16,7 +17,6 @@ void Estimator::processMeasurements()
 {
 	while(1)
 	{
-		printf("process measurments\n");
 		if(!featureBuf.empty())
 		{
 			pair<double, map<int, vector<Eigen::Matrix<double, 7, 1>>>> feature;
@@ -29,9 +29,10 @@ void Estimator::processMeasurements()
 			std_msgs::Header header;
             header.frame_id = "world";
             header.stamp = ros::Time(feature.first);
-            //pubOdometry(*this, header);
-			//pubCameraPose(*this, header);
-			//pubTF(*this, header);
+
+            pubOdometry(*this, header);
+            pubPointCloud(*this, header);
+            pubTF(*this, header);
 		}
 		if(!Flag_thread)
 			break;
@@ -73,9 +74,8 @@ void Estimator::setParameter()
     }
     featureTracker.readIntrinsicParameter(CAM_NAMES);
     Flag_thread=true;
-    //processThread = std::thread(&Estimator::processMeasurements, this);
+    processThread = std::thread(&Estimator::processMeasurements, this);
     mProcess.unlock();
-    ROS_INFO("setParameter finish");
 }
 
 //每两帧才做一次关键帧pnp估计
@@ -108,11 +108,11 @@ void Estimator::inputIMU(double time, Vector3d acc, Vector3d gyr)
 
 void Estimator::processImage(const map<int, vector< Eigen::Matrix<double, 7, 1>>> &image)
 {
-    ROS_DEBUG("Adding feature points %lu", image.size());
-	if(f_manager.addFeatureCheckParallax(frame_count,image))
+	if(f_manager.addFeatureCheckParallax(frame_count,image))   //返回1表示视差大，要去掉最旧帧
 		marginalization_flag=0;
 	else
 		marginalization_flag=1;
+
 	if(solver_flag==0)
 	{
 		f_manager.initFramePoseByPnP(frame_count, Ps, Rs, tic, ric);
@@ -122,13 +122,13 @@ void Estimator::processImage(const map<int, vector< Eigen::Matrix<double, 7, 1>>
 		{
 			solver_flag=1;
 			slideWindow();
-                ROS_INFO("Initialization finish!");
+            ROS_INFO("Initialization finish!");
 		}
 		else
 		{
 		    frame_count++;
+            //给个初值，防止pnp失败导致位姿误差过大
             int prev_frame = frame_count - 1;
-			//有必要吗？？
             Ps[frame_count] = Ps[prev_frame];
             Rs[frame_count] = Rs[prev_frame];
 		}
@@ -170,8 +170,8 @@ void Estimator::slideWindow()
 			R1 = Rs[0] * ric[0];
 			P0 = back_P0 + back_R0 * tic[0];
 			P1 = Ps[0] + Rs[0] * tic[0];
+            ROS_INFO("delte old");
 			f_manager.removeBackShiftDepth(R0, P0, R1, P1);
-
 
         }
     }
@@ -179,6 +179,7 @@ void Estimator::slideWindow()
     {
         if (frame_count == WINDOW_SIZE)
         {
+            ROS_INFO("delte new");
             Headers[frame_count - 1] = Headers[frame_count];
             Ps[frame_count - 1] = Ps[frame_count];
             Rs[frame_count - 1] = Rs[frame_count];

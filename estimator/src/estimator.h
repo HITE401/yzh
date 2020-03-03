@@ -6,13 +6,14 @@
 #include<queue>
 #include<mutex>
 #include<thread>
+#include<string>
 #include<std_msgs/Header.h>
 #include <sensor_msgs/Image.h>
 #include <cv_bridge/cv_bridge.h>
 #include"featuretracker.h"
 #include"feature_manager.h"
 #include"parameters.h"
-#include "pub_topic.h"
+
 using namespace std;
 using namespace Eigen;
 
@@ -48,6 +49,9 @@ public:
 
 	FeatureTracker featureTracker;
 	FeatureManager f_manager;
+	bool solver_flag;
+	Vector3d Ps[(WINDOW_SIZE + 1)], tic[2];
+    Matrix3d Rs[(WINDOW_SIZE + 1)], ric[2];     //Rs=T^w_imu
 	
 
 private:
@@ -58,12 +62,10 @@ private:
 	thread processThread;
 	bool Flag_thread;   //子线程退出的标志位
 	bool marginalization_flag;    //=0则边缘化旧帧
-	bool solver_flag;
 	int frame_count;
 
 	double Headers[(WINDOW_SIZE+1)];  //窗口时间戳
-	Vector3d Ps[(WINDOW_SIZE + 1)], tic[2];
-    Matrix3d Rs[(WINDOW_SIZE + 1)], ric[2];     //Rs=T^w_imu
+
 
 	void processMeasurements();
 	void processImage(const map<int, vector<Eigen::Matrix<double, 7, 1>>> &image);

@@ -32,6 +32,10 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
                 long_track_num++;
         }
     }
+    // ROS_INFO("new_feature_num: %d" ,new_feature_num);
+    // ROS_INFO("last_track_num: %d", last_track_num);
+    // ROS_INFO("long_track_num: %d" ,long_track_num);
+
     //新帧的跟踪点太少，长时间跟踪点太少，新增特征点太多，次新帧和次次新帧之间的视差太大，都决定新帧被保留
     if (frame_count < 2 || last_track_num < 20 || long_track_num < 40 || new_feature_num > 0.5 * last_track_num)
         return true;
@@ -52,13 +56,14 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
             parallax_num++;
         }
     }
+    // ROS_INFO("parallax: %lf", parallax_sum / parallax_num);
     if (parallax_num == 0)
         return true;
     else
         return parallax_sum / parallax_num >= MIN_PARALLAX;
 }
 
-//pnp求解的前端位姿，要求特征点的深度都已知（深度不知道的特征点怎么办？？）
+//pnp求解的前端位姿，要求特征点的深度都已知
 void FeatureManager::initFramePoseByPnP(int frameCnt, Vector3d Ps[], Matrix3d Rs[], Vector3d tic[], Matrix3d ric[])
 {
     if(frameCnt > 0)
@@ -112,6 +117,7 @@ void FeatureManager::initFramePoseByPnP(int frameCnt, Vector3d Ps[], Matrix3d Rs
         PCam = RCam * (-P_initial);
         Rs[frameCnt] = RCam * ric[0].transpose(); 
         Ps[frameCnt] = -RCam * ric[0].transpose() * tic[0] + PCam;
+        cout << " exitrinsic cam " << frameCnt << endl  << Ps[frameCnt].transpose() << endl ;
     }
 }
 
@@ -236,8 +242,9 @@ void FeatureManager::triangulatePoint(Eigen::Matrix<double, 3, 4> &Pose0, Eigen:
 
 void FeatureManager::removeFront(int frame_count)
 {
-    for (auto it = feature.begin(); it != feature.end(); it++)
+    for (auto it=feature.begin(),it_next=feature.begin(); it != feature.end(); it=it_next)
     {
+        it_next++;
         if (it->start_frame == frame_count)
             it->start_frame--;
         else
@@ -255,8 +262,9 @@ void FeatureManager::removeFront(int frame_count)
 
 void FeatureManager::removeBackShiftDepth(Eigen::Matrix3d marg_R, Eigen::Vector3d marg_P, Eigen::Matrix3d new_R, Eigen::Vector3d new_P)
 {
-    for (auto it = feature.begin(); it != feature.end(); it++)
+    for (auto it=feature.begin(),it_next=feature.begin(); it != feature.end(); it=it_next)
     {
+        it_next++;
         if (it->start_frame != 0)
             it->start_frame--;
         else
@@ -285,9 +293,11 @@ void FeatureManager::removeBackShiftDepth(Eigen::Matrix3d marg_R, Eigen::Vector3
 
 void FeatureManager::removeOutlier(set<int> &outlierIndex)
 {
+    ROS_INFO("Outlier size: %lu" ,outlierIndex.size());
     std::set<int>::iterator itSet;
-    for (auto it = feature.begin(); it != feature.end(); it++ )
+    for (auto it = feature.begin(), it_next = feature.begin(); it != feature.end(); it = it_next)
     {
+        it_next++;
         int index = it->feature_id;
         itSet = outlierIndex.find(index);
         if(itSet != outlierIndex.end())
