@@ -311,7 +311,58 @@ void FeatureManager::removeOutlier(set<int> &outlierIndex)
     feature.clear();
 }
 
+
+VectorXd FeatureManager::getDepthVector()
+{
+    VectorXd dep_vec(getFeatureCount());
+    int feature_index = -1;
+    for (auto &it_per_id : feature)
+    {
+        it_per_id.used_num = it_per_id.feature_per_frame.size();
+        if (it_per_id.used_num < 4)
+            continue;
+        dep_vec(++feature_index) = 1. / it_per_id.estimated_depth;
+    }
+    return dep_vec;
+}
     
+int FeatureManager::getFeatureCount()
+{
+    int cnt = 0;
+    for (auto &it : feature)
+    {
+        it.used_num = it.feature_per_frame.size();
+        if (it.used_num >= 4)
+            cnt++;
+    }
+    return cnt;
+} 
+
+void FeatureManager::setDepth(const VectorXd &x)
+{
+    int feature_index = -1;
+    for (auto &it_per_id : feature)
+    {
+        it_per_id.used_num = it_per_id.feature_per_frame.size();
+        if (it_per_id.used_num < 4)
+            continue;
+        it_per_id.estimated_depth = 1.0 / x(++feature_index);
+        if (it_per_id.estimated_depth < 0)
+            it_per_id.solve_flag = 2;
+        else
+            it_per_id.solve_flag = 1;
+    }
+}
+
+void FeatureManager::removeFailures()
+{
+    for (auto it = feature.begin(), it_next = feature.begin(); it != feature.end(); it = it_next)
+    {
+        it_next++;
+        if (it->solve_flag == 2)
+            feature.erase(it);
+    }
+}
     
 
  

@@ -10,9 +10,9 @@ std::string IMU_TOPIC;
 std::string IMAGE0_TOPIC, IMAGE1_TOPIC;
 std::vector<std::string> CAM_NAMES;    //相机的模型文件
 int SHOW_TRACK;  //观察跟踪特征点 
-int NUM_ITERATIONS;  
+int NUM_ITERATIONS;     //非线性优化时最大迭代次数
 double F_THRESHOLD;
-double SOLVER_TIME;   
+double SOLVER_TIME;     //非线性优化时最大求解时间
 
 void readParameters(std::string config_file)
 {

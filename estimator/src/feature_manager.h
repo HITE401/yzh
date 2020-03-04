@@ -84,6 +84,14 @@ public:
 
     void clearState();
 
+    VectorXd getDepthVector();   //获取稳定特征点的逆深度
+
+    int getFeatureCount();   //获取稳定特征点的数量
+
+    void setDepth(const VectorXd &x);
+
+    void removeFailures();
+
                 
 private:
     double compensatedParallax2();

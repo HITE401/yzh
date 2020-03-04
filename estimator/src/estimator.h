@@ -2,7 +2,8 @@
 
 #include<opencv2/opencv.hpp>
 #include<eigen3/Eigen/Dense>
-#include<map>
+#include<ceres/ceres.h>
+#include<unordered_map>
 #include<queue>
 #include<mutex>
 #include<thread>
@@ -13,9 +14,20 @@
 #include"featuretracker.h"
 #include"feature_manager.h"
 #include"parameters.h"
+#include "utility.h"
+#include "projectionFactor.h"
 
 using namespace std;
 using namespace Eigen;
+
+class PoseLocalParameterization : public ceres::LocalParameterization
+{
+    virtual bool Plus(const double *x, const double *delta, double *x_plus_delta) const;
+    virtual bool ComputeJacobian(const double *x, double *jacobian) const;
+    virtual int GlobalSize() const { return 7; };
+    virtual int LocalSize() const { return 6; };
+};
+
 
 
 class Estimator
@@ -64,7 +76,11 @@ private:
 	bool marginalization_flag;    //=0则边缘化旧帧
 	int frame_count;
 
-	double Headers[(WINDOW_SIZE+1)];  //窗口时间戳
+	double Headers[(WINDOW_SIZE+1)];  //窗口时间戳,好像没用到？？
+
+	double para_Pose[WINDOW_SIZE + 1][7];     //优化位姿变量
+	double para_Feature[1000][1];              //优化特征点深度
+	double para_Ex_Pose[2][7];					//固定的外参变量
 
 
 	void processMeasurements();
@@ -84,5 +100,8 @@ private:
 	double reprojectionError(Matrix3d &Ri, Vector3d &Pi, Matrix3d &rici, Vector3d &tici,
                                  Matrix3d &Rj, Vector3d &Pj, Matrix3d &ricj, Vector3d &ticj, 
                                  double depth, Vector3d &uvi, Vector3d &uvj);
+
+	void vector2double();
+	void double2vector();
 
 };
