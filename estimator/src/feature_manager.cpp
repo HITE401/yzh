@@ -7,10 +7,20 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
     double parallax_sum = 0;
     int parallax_num = 0,new_feature_num = 0,long_track_num = 0,last_track_num=0;
 
+
+        int i=0;
     for (auto &id_pts : image)
     {
         FeaturePerFrame f_per_fra(id_pts.second[0]);
-        f_per_fra.rightObservation(id_pts.second[1]);
+
+        if(id_pts.second.size()==2)
+            f_per_fra.rightObservation(id_pts.second[1]);
+        else
+        {
+            i++;
+        }
+
+        
 
         int feature_id = id_pts.first;
         auto it = find_if(feature.begin(), feature.end(), [feature_id](const FeaturePerId &it)
@@ -32,6 +42,8 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
                 long_track_num++;
         }
     }
+
+         //   printf("right pint: %d\n", i);
     // ROS_INFO("new_feature_num: %d" ,new_feature_num);
     // ROS_INFO("last_track_num: %d", last_track_num);
     // ROS_INFO("long_track_num: %d" ,long_track_num);
@@ -39,6 +51,7 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
     //新帧的跟踪点太少，长时间跟踪点太少，新增特征点太多，次新帧和次次新帧之间的视差太大，都决定新帧被保留
     if (frame_count < 2 || last_track_num < 20 || long_track_num < 40 || new_feature_num > 0.5 * last_track_num)
         return true;
+
     for (auto &it_per_id : feature)
     {
         if (it_per_id.start_frame <= frame_count - 2 && it_per_id.start_frame + int(it_per_id.feature_per_frame.size())  >= frame_count )
@@ -86,19 +99,22 @@ void FeatureManager::initFramePoseByPnP(int frameCnt, Vector3d Ps[], Matrix3d Rs
                 }
             }
         }
-        if (int(pts2D.size()) < 4)
-        {
-            printf("feature tracking not enough, please slowly move you device! \n");
-            return ;
-        }
+
         Eigen::Matrix3d RCam, R_initial;
         Eigen::Vector3d PCam, P_initial;
         // trans to T^w_cam
         RCam = Rs[frameCnt - 1] * ric[0];
         PCam = Rs[frameCnt - 1] * tic[0] + Ps[frameCnt - 1];
+
         // w_T_cam ---> cam_T_w 
         R_initial = RCam.inverse();
         P_initial = -(R_initial * PCam);
+
+        if (int(pts2D.size()) < 4)
+        {
+            printf("feature tracking not enough, please slowly move you device! \n");
+            return ;
+        }
         cv::Mat  rvec, t, D, tmp_r;
         cv::eigen2cv(R_initial, tmp_r);
         cv::Rodrigues(tmp_r, rvec);
@@ -117,7 +133,10 @@ void FeatureManager::initFramePoseByPnP(int frameCnt, Vector3d Ps[], Matrix3d Rs
         PCam = RCam * (-P_initial);
         Rs[frameCnt] = RCam * ric[0].transpose(); 
         Ps[frameCnt] = -RCam * ric[0].transpose() * tic[0] + PCam;
-        cout << " exitrinsic cam " << frameCnt << endl  << Ps[frameCnt].transpose() << endl ;
+        Eigen::Quaterniond Q(Rs[frameCnt]);
+        // cout << "frameCnt Q: " << frameCnt  << Q.w() << " " << Q.vec().transpose() << endl;
+        // cout << " frameCnt cam " << frameCnt<< Ps[frameCnt].transpose() << endl ;
+        // cout<<endl;
     }
 }
 
@@ -192,6 +211,7 @@ void FeatureManager::triangulate(int frameCnt, Vector3d Ps[], Matrix3d Rs[], Vec
         if (it_per_id.used_num < 4)
             continue;
         //多组数据，深度svd估计
+        cout<<"svd solve depth"<<endl;
         int imu_i = it_per_id.start_frame, imu_j = imu_i - 1;
         Eigen::MatrixXd svd_A(2 * it_per_id.feature_per_frame.size(), 4);
         int svd_idx = 0;
@@ -293,7 +313,7 @@ void FeatureManager::removeBackShiftDepth(Eigen::Matrix3d marg_R, Eigen::Vector3
 
 void FeatureManager::removeOutlier(set<int> &outlierIndex)
 {
-    ROS_INFO("Outlier size: %lu" ,outlierIndex.size());
+    //ROS_INFO("Outlier size: %lu" ,outlierIndex.size());
     std::set<int>::iterator itSet;
     for (auto it = feature.begin(), it_next = feature.begin(); it != feature.end(); it = it_next)
     {

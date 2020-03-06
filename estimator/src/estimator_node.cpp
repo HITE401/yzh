@@ -96,11 +96,17 @@ void sync_process()
 		if (!imgleft_buf.empty() && !imgright_buf.empty())
 		{
 			double time0 = imgleft_buf.front()->header.stamp.toSec();
-			double time1 = imgleft_buf.front()->header.stamp.toSec();
+			double time1 = imgright_buf.front()->header.stamp.toSec();
 			if(time0 < time1 - 0.003)
+			{
 				imgleft_buf.pop();
+				printf("throw img0\n");	
+			}
 			else if(time0 > time1 + 0.003)
+			{
 				imgright_buf.pop();
+				printf("throw img1\n");	
+			}
 			else{
 				time = imgleft_buf.front()->header.stamp.toSec();
 				header = imgleft_buf.front()->header;
@@ -112,7 +118,10 @@ void sync_process()
 		}
 		m_buf.unlock();
 		if(!imgleft.empty())
+		{
 			estimator.inputImage(time, imgleft, imgright);
+		}
+
 
 		std::chrono::milliseconds dura(2);
 		std::this_thread::sleep_for(dura);
@@ -126,8 +135,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "estimator_node");
 	ros::NodeHandle n("~"); 
 	//设置rosconsole调试级别
-	ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug);
-	ROS_INFO("Estimator_node start!");
+	ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
 	 if(argc != 2){
         printf("please intput: rosrun estimator estimator_exc [config file] \n");
         return 1;

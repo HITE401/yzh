@@ -144,6 +144,7 @@ map<int, vector<Eigen::Matrix<double, 7, 1>>> FeatureTracker::trackImage(double 
 
     cur_un_pts=undistortedPts(cur_pts, m_camera[0]);
     pts_velocity= ptsVelocity(ids, cur_un_pts, prev_id_pts);
+
     if(!Imgright.empty())
     {
         if(!cur_pts.empty())
@@ -190,7 +191,7 @@ map<int, vector<Eigen::Matrix<double, 7, 1>>> FeatureTracker::trackImage(double 
     for(size_t i=0; i <right_ids.size(); i++)
     {
         Eigen::Matrix<double, 7, 1> xyz_uv_velocity;
-        xyz_uv_velocity<<cur_un_right_pts[i].x , cur_un_right_pts[i].y , 1 , cur_right_pts[i].x , cur_right_pts[i].y, right_pts_velocity[i].x , right_pts_velocity[i].y ;
+        xyz_uv_velocity<<cur_un_right_pts[i].x , cur_un_right_pts[i].y , 1.0 , cur_right_pts[i].x , cur_right_pts[i].y, right_pts_velocity[i].x , right_pts_velocity[i].y ;
         int feature_id= right_ids[i];
         featureFrame[feature_id].emplace_back(xyz_uv_velocity);
     }

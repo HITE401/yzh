@@ -16,6 +16,7 @@
 #include"parameters.h"
 #include "utility.h"
 #include "projectionFactor.h"
+#include "marginalization_factor.h"
 
 using namespace std;
 using namespace Eigen;
@@ -34,8 +35,6 @@ class Estimator
 {
 public:
  	Estimator();
-
-    ~Estimator();
 	
 	/**
 	 @description: 设置一些必要的参数
@@ -67,12 +66,9 @@ public:
 	
 
 private:
-	int inputImageCnt;
 	mutex mBuf;  //特征点Buf的互斥量
 	mutex mProcess;  //这是什么的互斥量？？
 	queue<pair<double, map<int, vector<Eigen::Matrix<double, 7, 1>>>>> featureBuf;
-	thread processThread;
-	bool Flag_thread;   //子线程退出的标志位
 	bool marginalization_flag;    //=0则边缘化旧帧
 	int frame_count;
 
@@ -81,6 +77,9 @@ private:
 	double para_Pose[WINDOW_SIZE + 1][7];     //优化位姿变量
 	double para_Feature[1000][1];              //优化特征点深度
 	double para_Ex_Pose[2][7];					//固定的外参变量
+
+	vector<double *> last_marginalization_parameter_blocks;    
+	MarginalizationInfo *last_marginalization_info;
 
 
 	void processMeasurements();

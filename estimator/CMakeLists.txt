@@ -37,7 +37,10 @@ add_library(estimator_lib
 	src/featuretracker.cpp
 	src/feature_manager.cpp
 	src/estimator.cpp
-	src/pub_topic.cpp)
+	src/pub_topic.cpp
+	src/marginalization_factor.cpp
+	src/projectionFactor.cpp
+	src/utility.cpp)
 
 target_link_libraries(estimator_lib ${catkin_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES})
 
