@@ -54,7 +54,7 @@ void Estimator::processMeasurements()
 
             pubOdometry(*this, header);
             pubPointCloud(*this, header);
-            pubTF(*this, header);
+           pubTF(*this, header);
             mProcess.unlock();
 		}
         break;
@@ -163,7 +163,6 @@ void Estimator::processImage(const map<int, vector< Eigen::Matrix<double, 7, 1>>
 		optimization();
 		set<int> removeIndex;
         outliersRejection(removeIndex);
-        //printf("outlier: %d\n",int(removeIndex.size()));
         f_manager.removeOutlier(removeIndex);    //去除深度估计误差较大的点
 		
         //featureTracker.removeOutliers(removeIndex);

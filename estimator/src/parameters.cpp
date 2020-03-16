@@ -13,6 +13,7 @@ int SHOW_TRACK;  //观察跟踪特征点
 int NUM_ITERATIONS;     //非线性优化时最大迭代次数
 double F_THRESHOLD;
 double SOLVER_TIME;     //非线性优化时最大求解时间
+string VINS_OUT_PATH="/home/yzh/output/vins_odm.csv";
 
 void readParameters(std::string config_file)
 {

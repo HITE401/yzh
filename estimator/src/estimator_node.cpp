@@ -146,6 +146,9 @@ int main(int argc, char **argv)
 	registerPub(n);
     estimator.setParameter();
 
+	ofstream fout(VINS_OUT_PATH,ios::out);
+	fout.close();
+
 	//订阅双目相机的图像消息和imu数据
 	ROS_WARN("waiting for image and imu...");
 	ros::Subscriber sub_imu=n.subscribe("/kitti/oxts/imu" , 2000 , imu_callback  , ros::TransportHints().tcpNoDelay());
