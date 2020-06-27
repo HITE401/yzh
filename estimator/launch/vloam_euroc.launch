@@ -1,0 +1,19 @@
+<launch>
+
+<node pkg="estimator" type="euroc_estimator" name="euroc_estimator" args="$(find estimator)/../config/euroc/euroc_stereo_imu_config.yaml"/>
+
+
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find estimator)/../config/vloam.rviz"/>
+
+
+<node pkg="rosbag" type="play" name="playbag" output="screen" args="/home/yzh/data/MH_05_difficult.bag"/>
+
+
+
+
+
+<!-- 注释   -->
+
+
+</launch>
+

@@ -11,7 +11,7 @@
 
 
 extern ros::Publisher  pub_image_track;
-extern ros::Publisher pub_odometry;
+extern ros::Publisher pub_odometry, pub_latest_odometry;
 extern ros::Publisher pub_path;
 
 
@@ -21,3 +21,4 @@ void registerPub(ros::NodeHandle &n);
 void pubOdometry(const Estimator &estimator, const std_msgs::Header &header);
 void pubTF(const Estimator &estimator, const std_msgs::Header &header);
 void pubPointCloud(const Estimator &estimator, const std_msgs::Header &header);
+void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t);

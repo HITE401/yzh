@@ -8,11 +8,14 @@ imu_topic: ""
 image0_topic: "/kitti/camera_gray_left/image_raw"
 image1_topic: "/kitti/camera_gray_right/image_raw"
 output_path: "/home/yzh/output/"
+pose_graph_save_path: "/home/yzh/output/pose_graph_save/"
+save_image: 0
+load_previous_pose_graph: 0
 
 cam0_calib: "cam00-02.yaml"
 cam1_calib: "cam00-02.yaml"
-image_width: 1242
-image_height: 375
+image_width: 1241
+image_height: 376
    
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.

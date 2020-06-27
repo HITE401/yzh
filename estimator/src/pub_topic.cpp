@@ -2,7 +2,7 @@
 
 ros::Publisher  pub_image_track;
 ros::Publisher pub_path;
-ros::Publisher pub_odometry;
+ros::Publisher pub_odometry, pub_latest_odometry;
 ros::Publisher pub_point_cloud;
 
 
@@ -53,17 +53,16 @@ void pubOdometry(const Estimator &estimator, const std_msgs::Header &header)
         ofstream fout(VINS_OUT_PATH,ios::app);
         fout.setf(ios::fixed,ios::floatfield);
         fout.precision(0);
-        fout<<header.stamp.toSec()* 1e09<<",";
+        fout<<header.stamp.toSec() <<" ";
         fout.precision(5);
-        fout << tmp_T.x() << ","
-            << tmp_T.y() << ","
-            << tmp_T.z() << ","
-            << tmp_Q.w() << ","
-            << tmp_Q.x() << ","
-            << tmp_Q.y() << ","
-            << tmp_Q.z() << ","<< endl;
+        fout << tmp_T.x() << " "
+            << tmp_T.y() << " "
+            << tmp_T.z() << " "
+            << tmp_Q.w() << " "
+            << tmp_Q.x() << " "
+            << tmp_Q.y() << " "
+            << tmp_Q.z() << endl;
             fout.close();
-
     }
 }
 
@@ -123,4 +122,22 @@ void pubPointCloud(const Estimator &estimator, const std_msgs::Header &header)
         point_cloud.points.push_back(p);
     }
     pub_point_cloud.publish(point_cloud);
+}
+
+void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t)
+{
+    nav_msgs::Odometry odometry;
+    odometry.header.stamp = ros::Time(t);
+    odometry.header.frame_id = "world";
+    odometry.pose.pose.position.x = P.x();
+    odometry.pose.pose.position.y = P.y();
+    odometry.pose.pose.position.z = P.z();
+    odometry.pose.pose.orientation.x = Q.x();
+    odometry.pose.pose.orientation.y = Q.y();
+    odometry.pose.pose.orientation.z = Q.z();
+    odometry.pose.pose.orientation.w = Q.w();
+    odometry.twist.twist.linear.x = V.x();
+    odometry.twist.twist.linear.y = V.y();
+    odometry.twist.twist.linear.z = V.z();
+    pub_latest_odometry.publish(odometry);
 }

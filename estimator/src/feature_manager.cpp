@@ -20,8 +20,6 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
             i++;
         }
 
-        
-
         int feature_id = id_pts.first;
         auto it = find_if(feature.begin(), feature.end(), [feature_id](const FeaturePerId &it)
                           {
@@ -42,11 +40,6 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count,const map<int, vect
                 long_track_num++;
         }
     }
-
-         //   printf("right pint: %d\n", i);
-    // ROS_INFO("new_feature_num: %d" ,new_feature_num);
-    // ROS_INFO("last_track_num: %d", last_track_num);
-    // ROS_INFO("long_track_num: %d" ,long_track_num);
 
     //新帧的跟踪点太少，长时间跟踪点太少，新增特征点太多，次新帧和次次新帧之间的视差太大，都决定新帧被保留
     if (frame_count < 2 || last_track_num < 20 || long_track_num < 40 || new_feature_num > 0.5 * last_track_num)
